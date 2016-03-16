@@ -3,3 +3,8 @@ repo_url: git@github.com:mhfowler/flask_ansible_ec2_template.git
 repo_remote: origin
 repo_branch: master
 webapps_dir: /srv
+aws_key_name: maxhfowler_dec8
+aws_security_group: citigroup_apps
+aws_instance_name: hello_webapp
+aws_key_location: /Users/maxfowler/Desktop/cs/ec2/dec8/maxhfowler_dec8.pem
+aws_subnet: subnet-1b647733
