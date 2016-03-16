@@ -1,0 +1,39 @@
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+
+    - name: Provision a new instance
+      ec2:
+        key_name: maxhfowler_dec8
+        instance_type: t2.micro
+        image: ami-fce3c696
+        wait: yes
+        group: citigroup_apps
+        count: 1
+        vpc_subnet_id: subnet-1b647733
+        assign_public_ip: yes
+        region: us-east-1
+        instance_tags:
+          Name: hello_webapp
+      register: ec2
+
+    - name: Add the newly created EC2 instance(s) to the local host group (located inside the directory)
+      local_action: lineinfile
+                    dest="./hosts"
+                    regexp={{ item.public_ip }}
+                    insertafter="[webservers]" line="{{ item.public_ip }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file=/Users/maxfowler/Desktop/cs/ec2/dec8/maxhfowler_dec8.pem"
+      with_items: ec2.instances
+
+
+    - name: Wait for SSH to come up
+      wait_for: host={{ item.public_dns_name }} port=22 delay=60 timeout=320 state=started
+      with_items: ec2.instances
+
+
+    - name: add ec2 hosts to known hosts
+      local_action: command ssh -o StrictHostKeyChecking=no ubuntu@{{ item.public_ip }} -i /Users/maxfowler/Desktop/cs/ec2/dec8/maxhfowler_dec8.pem
+      with_items: ec2.instances

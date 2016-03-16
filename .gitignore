@@ -1,0 +1,5 @@
+devops/secret_files/*
+.idea*
+*.pyc
+hello_webapp.ini
+devops/hosts

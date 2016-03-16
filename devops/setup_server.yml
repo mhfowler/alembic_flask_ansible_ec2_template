@@ -1,0 +1,88 @@
+---
+
+- hosts: webservers
+  user: ubuntu
+  sudo: True
+
+  tasks:
+    - include_vars: vars.yaml
+
+    - name: add nginx ppa
+      action: apt_repository repo=ppa:nginx/stable state=present
+
+    - name: install common packages needed for python application development
+      action: apt pkg=$item state=installed
+      with_items:
+        - libpq-dev
+        - libmysqlclient-dev
+        - libxml2-dev
+        - libjpeg62
+        - libjpeg62-dev
+        - libfreetype6
+        - libfreetype6-dev
+        - zlib1g-dev
+        - mysql-client
+        - python-dev
+        - python-setuptools
+        - python-imaging
+        - python-mysqldb
+        - python-psycopg2
+        - git-core
+        - nginx
+
+    - name: install pip
+      action: easy_install name=pip
+
+    - name: install virtualenv and uwsgi
+      action: pip name={{item.name}} version={{item.version}}
+      with_items:
+        - { name: 'virtualenv', version: '14.0.6' }
+        - { name: 'uwsgi', version: '2.0.12' }
+
+    - name: symlink imaging library files
+      action: file src=/usr/lib/x86_64-linux-gnu/libfreetype.so dest=/usr/lib/libfreetype.so state=link
+
+    - name: symlink imaging library files
+      action: file src=/usr/lib/x86_64-linux-gnu/libz.so dest=/usr/lib/libz.so state=link
+
+    - name: symlink imaging library files
+      action: file src=/usr/lib/x86_64-linux-gnu/libjpeg.so.62 dest=/usr/lib/x86_64-linux-gnu/libjpeg.so state=link
+
+    - name: symlink imaging library files
+      action: file src=/usr/lib/x86_64-linux-gnu/libjpeg.so dest=/usr/lib/libjpeg.so state=link
+
+    - name: remove default nginx site
+      action: file path=/etc/nginx/sites-enabled/default state=absent
+
+    - name: write nginx.conf
+      action: template src=templates/nginx.conf dest=/etc/nginx/nginx.conf
+
+    - name: create webapps directory
+      action: file dest={{webapps_dir}} state=directory
+
+    - name: create webgroup if it doesn't exist
+      group: name=webgroup state=present
+      tags:
+        - debug
+
+    - name: ensure wsgi-user belongs to webgroup
+      user: name=wsgi-user groups=webgroup append=yes
+      tags:
+        - debug
+
+    - name: ensure wsgi-user belongs to webgroup
+      user: name=www-data groups=webgroup append=yes
+      tags:
+        - debug
+
+    - name: ensure ubuntu belongs to webgroup
+      user: name=ubuntu groups=webgroup append=yes
+      tags:
+        - debug
+
+    - name: copy over ssh keys for deploy purposes
+      action: copy src={{item.from}} dest={{item.to}} mode={{item.mode}}
+      with_items:
+        - { from: 'secret_files/deploy_rsa.pub', to: '/root/.ssh/id_rsa.pub', mode: '0644' }
+        - { from: 'secret_files/deploy_rsa', to: '/root/.ssh/id_rsa', mode: '0600' }
+

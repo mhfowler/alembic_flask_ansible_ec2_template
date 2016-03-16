@@ -1,0 +1,60 @@
+---
+
+- hosts: webservers
+  user: ubuntu
+  sudo: True
+
+  tasks:
+    - include_vars: vars.yaml
+
+    - name: ensure log directory
+      action: file dest={{webapps_dir}}/{{app_name}}/log state=directory
+
+    - name: deploy code from repository
+      git: repo={{repo_url}} dest={{webapps_dir}}/{{app_name}}/src remote={{repo_remote}} version={{repo_branch}} accept_hostkey=yes
+      notify:
+        - restart nginx
+        - restart webapp
+
+    - name: install python requirements
+      action: pip requirements={{webapps_dir}}/{{app_name}}/src/requirements.txt state=present
+
+    - name: copy hellow_webapp.ini
+      action: template src=templates/hello_webapp.ini dest={{webapps_dir}}/{{app_name}}/src/hello_webapp.ini
+
+    - name: create nginx site config
+      action: template src=templates/nginx_site.conf dest=/etc/nginx/sites-available/{{app_name}}.conf
+      notify:
+        - restart nginx
+
+    - name: link nginx config
+      action: file src=/etc/nginx/sites-available/{{app_name}}.conf dest=/etc/nginx/sites-enabled/{{app_name}}.conf state=link
+
+    - name: create upstart script for webapp
+      action: template src=templates/hello_webapp.conf dest=/etc/init/hello_webapp.conf
+
+    - name: ensure secrets directory
+      action: file dest={{webapps_dir}}/{{app_name}}/src/devops/secret_files state=directory
+
+    - name: Copy secret.json file
+      copy: src=secret_files/secret.json dest={{webapps_dir}}/{{app_name}}/src/devops/secret_files/secret.json
+
+    - name: make webapp folder writeable by webgroup
+      action: file path={{webapps_dir}} mode=u=rwX,g=rwX,o=X recurse=yes group=webgroup
+      tags:
+        - debug
+
+    - name: restart server and webapp
+      command: /bin/true
+      notify:
+        - restart nginx
+        - restart webapp
+
+
+  handlers:
+
+    - name: restart nginx
+      action: service name=nginx state=restarted
+
+    - name: restart webapp
+      action: service name={{app_name}} state=restarted
