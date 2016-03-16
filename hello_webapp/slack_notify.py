@@ -1,6 +1,8 @@
-from hello_webapp.settings import SECRETS_DICT
-from slackclient import SlackClient
 import json
+
+from slackclient import SlackClient
+
+from hello_settings import SECRETS_DICT
 
 
 def slack_notify_message(message):

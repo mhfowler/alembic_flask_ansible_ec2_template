@@ -1,0 +1,14 @@
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="/static/css/hello.css">
+</head>
+<body>
+
+<div class="test">
+    {% for test in test_objects %}
+        <div class="test_object">{{ test.name }}: {{ test.email }}</div>
+    {% endfor %}
+</div>
+
+</body>
+</html>

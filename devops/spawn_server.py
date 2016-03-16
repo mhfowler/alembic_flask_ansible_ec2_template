@@ -1,6 +1,6 @@
 import os
 
-from hello_webapp.settings import SECRETS_DICT, PROJECT_PATH
+from settings import SECRETS_DICT, PROJECT_PATH
 
 
 if __name__ == '__main__':

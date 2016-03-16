@@ -1,9 +1,14 @@
-import sys, traceback, os
+import os
+import sys
+import traceback
 
 from flask import Flask, render_template, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
 
-from hello_webapp.settings import PROJECT_PATH, LOCAL
+from hello_settings import PROJECT_PATH, get_db_url, DEBUG
 from hello_webapp.helpers import _log
+from hello_webapp.helper_routes import get_hello_helpers_blueprint
+from hello_models.database import db_session
 
 
 # paths
@@ -11,8 +16,20 @@ FLASK_DIR = os.path.join(PROJECT_PATH, 'hello_webapp')
 TEMPLATE_DIR = os.path.join(FLASK_DIR, 'templates')
 STATIC_DIR = os.path.join(FLASK_DIR, 'static')
 
+
+# create flask app
 app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=PROJECT_PATH)
-app.debug = LOCAL
+app.debug = DEBUG
+
+
+# integrate sql alchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = get_db_url()
+db = SQLAlchemy(app)
+
+
+# register blueprints
+hello_helpers = get_hello_helpers_blueprint(db=db, template_dir=TEMPLATE_DIR)
+app.register_blueprint(hello_helpers)
 
 
 @app.route("/")
@@ -41,21 +58,9 @@ def error_handler_500(e):
     raise e
 
 
-@app.route('/error/')
-def flask_force_error():
-    """
-    this helper page forces an error, for testing error logging
-    """
-    raise Exception('forced 500 error')
-
-
-@app.route('/slack/')
-def flask_slack_test():
-    """
-    this helper page for testing if slack is working
-    """
-    _log('@channel: slack is working?')
-    return 'slack test'
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
 
 
 if __name__ == "__main__":

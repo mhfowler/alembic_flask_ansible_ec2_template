@@ -9,3 +9,6 @@ def _log(message):
     """
     print message
     slack_notify_message(message)
+
+
+
