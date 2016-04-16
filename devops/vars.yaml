@@ -1,5 +1,5 @@
 app_name: hello_webapp
-repo_url: git@github.com:mhfowler/flask_ansible_ec2_template.git
+repo_url: git@github.com:mhfowler/alembic_flask_ansible_ec2_template.git
 repo_remote: origin
 repo_branch: master
 webapps_dir: /srv
