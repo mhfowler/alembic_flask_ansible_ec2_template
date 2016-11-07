@@ -78,7 +78,7 @@ In the future to auto-generate new migrations run: `alembic revision --autogener
 Then inspect the migration in alembic/versions/ and then run: `alembic upgrade head` to run the migration.
 
 
-### 5. Spawn A Fukn Server 
+### 5. Spawn A Server 
 
 `./spawn_server.sh`
 https://open.spotify.com/track/1S8FBwS475qrBhJhWtqeiP
